@@ -8,7 +8,7 @@
 **
 ** Published       : 02.01.2017
 **
-** Current version : 1.0
+** Current version : 1.1
 **
 ** Developed by    : Jozsef Kiss
 **                   KissCode Systems Kft
@@ -16,6 +16,9 @@
 **
 ** Changelog       : 1.0 - 02.01.2017
 **                   Initial release.
+**                   1.1 - 04.05.2017
+**                   The password show displays random spaces. (not to copy..)
+**                   Smaller improvements.
 **
 ** Copyright (C) 2017 KissCode Systems Kft
 **
@@ -37,8 +40,8 @@ import java . io . File ;
 import java . io . FileInputStream ;
 import java . io . FileNotFoundException ;
 import java . io . FileOutputStream ;
-import java . io . InputStreamReader ;
 import java . io . IOException ;
+import java . io . InputStreamReader ;
 import java . io . ObjectInputStream ;
 import java . io . ObjectOutputStream ;
 import java . security . AlgorithmParameters ;
@@ -101,7 +104,6 @@ public final class MyPwStock
 ** history entry1\n
 ** ...
 ** ____________________________________________________
-**
 */
 // This will be the header of a password container file.
   private static final String filesHeader = "-p-a-s-s-w-o-r-d-s-" + newLineChar ;
@@ -122,7 +124,7 @@ public final class MyPwStock
 ** These can be printed out! (messageApplicationDescribe)
 */
   private static final String appName = "MyPwStock" ;
-  private static final String appVersion = "1.0" ;
+  private static final String appVersion = "1.1" ;
   private static final int appMaxNumOfFiles = 7 ;
   private static final int appMaxLengthOfPasswordsAndKeysAndFileNames = 70 ;
   private static final int appMaxNumOfKeysPerFile = 700 ;
@@ -815,7 +817,7 @@ public final class MyPwStock
 // These have to be zero at this point.
     requestString = null ;
     requestParams = null ;
-// And a by message will be printed to the user.
+// And a bye message will be printed to the user.
     outprintln ( messageBye ) ;
   }
 /*
@@ -863,8 +865,11 @@ public final class MyPwStock
   private static final void executeCommandClearScreen ( String numOfEmptyLinesToPrintOut )
   {
     int num = Integer . parseInt ( numOfEmptyLinesToPrintOut ) ;
-    clearScreen ( num ) ;
-    outprintln ( messageScreenHasBeenCleared1 + num + messageScreenHasBeenCleared2 ) ;
+    if ( num > 1 )
+    {
+      clearScreen ( num ) ;
+      outprintln ( messageScreenHasBeenCleared1 + num + messageScreenHasBeenCleared2 ) ;
+    }
   }
 /*
 ** Lists the user's password files.
@@ -2683,7 +2688,7 @@ public final class MyPwStock
             if ( file != null )
             {
 // We are looking for folders.
-              if ( ! file . isFile ( ) )
+              if ( file . isDirectory ( ) )
               {
 // These are the actual name and description values!
                 backupName = file . getName ( ) ;
@@ -2898,7 +2903,7 @@ public final class MyPwStock
       {
         if ( backupFolder . exists ( ) )
         {
-          if ( ! backupFolder . isFile ( ) )
+          if ( backupFolder . isDirectory ( ) )
           {
 // Errors during file deleting.
             boolean fileDeleteError = false ;
@@ -3738,7 +3743,18 @@ public final class MyPwStock
 // Showing the password.
             for ( int i = 0 ; i < thePassword . length ; i ++ )
             {
+// Printing out the actual character.
               outprint ( thePassword [ i ] ) ;
+// If the password is a strong password then space characters are inserted.
+// (To help the user not to fall into temptation: avoid copy-paste password.)
+              if ( allowPasswordPartsFile1 == allowPasswordPartsNo )
+              {
+                outprint ( spaceChar ) ;
+                if ( Math . random ( ) < 0.5 )
+                {
+                  outprint ( spaceChar ) ;
+                }
+              }
             }
 // This has to be cleared immediately!
             clearCharArray ( thePassword ) ;
@@ -5343,7 +5359,7 @@ public final class MyPwStock
 // Else user gets error messages.
       if ( folder . exists ( ) )
       {
-        if ( ! folder . isFile ( ) )
+        if ( folder . isDirectory ( ) )
         {
           success = true ;
         }
@@ -5662,6 +5678,7 @@ public final class MyPwStock
     {
       if ( console != null )
       {
+// Waiting for the user's input.
         read = console . readLine ( s ) ;
         if ( read != null )
         {
@@ -5758,7 +5775,7 @@ public final class MyPwStock
     }
     else
     {
-      systemexit ( "Error - s is null, readPassword" ) ;
+      systemexit ( "Error - s is null, readpassword" ) ;
     }
 // Returning the password contained character array.
     return read ;
@@ -5983,7 +6000,7 @@ public final class MyPwStock
 */
   private static final void shiftFileContent ( String passwordType , int startPos , int diff )
   {
-// Only when it is not null!
+// Only when it is not 0!
     if ( diff != 0 )
     {
 // This will be the end of the content.
@@ -6674,7 +6691,7 @@ public final class MyPwStock
           }
           catch ( InvalidKeyException e )
           {
-            systemexit ( "Exception - InvalidKeyException, fileSave" ) ;
+            systemexit ( "Exception - InvalidKeyException, saveFile" ) ;
           }
 // This object is needed to store the iv.
           AlgorithmParameters ap = cipher . getParameters ( ) ;
@@ -6742,7 +6759,7 @@ public final class MyPwStock
 // 2: clearing, reinitializing and clearing again the correct character array.
 // 3: The content of the orig char array will be copied into the trim char array,
 // but without the last space chars!! (for loop)
-// 4: convert to byte array and place this into the bytes array
+// 4: converting to byte array and place this into the bytes array
           if ( passwordTypeFile1 . equals ( passwordType ) )
           {
             endIndex = getFirstSpaceCharIndexBefore ( fileContent1Orig ) ;
@@ -7093,11 +7110,21 @@ public final class MyPwStock
             try
             {
               fis . read ( bytes ) ;
-              fis . close ( ) ;
             }
             catch ( IOException e )
             {
               systemexit ( "Exception - IOException, readFileBytes" ) ;
+            }
+            finally
+            {
+              try
+              {
+                fis . close ( ) ;
+              }
+              catch ( Exception e )
+              {
+                systemexit ( "Exception - Exception, readFileBytes" ) ;
+              }
             }
           }
           else
@@ -7152,11 +7179,21 @@ public final class MyPwStock
           try
           {
             fos . write ( bytes ) ;
-            fos . close ( ) ;
           }
           catch ( IOException e )
           {
             systemexit ( "Exception - IOException, writeFileBytes" ) ;
+          }
+          finally
+          {
+            try
+            {
+              fos . close ( ) ;
+            }
+            catch ( Exception e )
+            {
+              systemexit ( "Exception - Exception, writeFileBytes" ) ;
+            }
           }
         }
         else
