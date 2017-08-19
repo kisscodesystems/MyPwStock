@@ -8,7 +8,7 @@
 **
 ** Published       : 02.01.2017
 **
-** Current version : 1.1
+** Current version : 1.2
 **
 ** Developed by    : Jozsef Kiss
 **                   KissCode Systems Kft
@@ -19,8 +19,7 @@
 **                   1.1 - 04.05.2017
 **                   The password show displays random spaces. (not to copy..)
 **                   Smaller improvements.
-**
-** Copyright (C) 2017 KissCode Systems Kft
+**                   1.2 - 08.19.2017
 **
 ** MyPwStock is free software: you can redistribute it and/or modify
 ** it under the terms of the GNU General Public License as published by
@@ -124,7 +123,7 @@ public final class MyPwStock
 ** These can be printed out! (messageApplicationDescribe)
 */
   private static final String appName = "MyPwStock" ;
-  private static final String appVersion = "1.1" ;
+  private static final String appVersion = "1.2" ;
   private static final int appMaxNumOfFiles = 7 ;
   private static final int appMaxLengthOfPasswordsAndKeysAndFileNames = 70 ;
   private static final int appMaxNumOfKeysPerFile = 700 ;
