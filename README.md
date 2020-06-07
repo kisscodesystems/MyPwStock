@@ -23,4 +23,4 @@ The java password management application.
     to type these every time, this is for the user's exact command)
   - the file and password operations are fully logged.
   
-Read more: https://openso.kisscodesystems.com
+Read more: http://kcsopensource.com
