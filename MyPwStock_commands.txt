@@ -8,7 +8,7 @@ MyPwStock commands:
   application story
   welcome screen
   good password
-  password part
+  password note
   clear screen <your_number_of_empty_lines_to_print_out>
   file list
   file search <your_expression_to_search>
@@ -26,6 +26,7 @@ MyPwStock commands:
   key move <your_current_file_name> <your_new_file_name> <your_key_name>
   key moveall <your_current_file_name> <your_new_file_name>
   password show <your_file_name> <your_key_name>
+  password copy <your_file_name> <your_key_name>
   password change <your_file_name> <your_key_name>
   password type change <your_file_name>
   admin review
