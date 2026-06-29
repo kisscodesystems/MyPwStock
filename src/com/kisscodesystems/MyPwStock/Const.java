@@ -24,8 +24,8 @@ final class Const {
   // lowercase letters terminated by a newline. It carries no fixed/known plaintext (so it is not a
   // recognizable marker and gives an offline attacker no constant to verify guesses against);
   // integrity and "correct key" detection come from the authenticated cipher (AES-GCM) instead.
-  static final int APP_HEADER_MIN_LETTERS = 5000;
-  static final int APP_HEADER_MAX_LETTERS = 10000;
+  static final int APP_HEADER_MIN_LETTERS = 8;
+  static final int APP_HEADER_MAX_LETTERS = 19;
 
   static final char ALLOW_NOTES_YES = 'y';
   static final char ALLOW_NOTES_NO = 'n';
