@@ -2429,6 +2429,18 @@ final class Messages {
           + NEW_LINE_CHAR
           + FOLD
           + "The filename is: ";
+  static final String MESSAGE_INTERRUPTED_SAVE_ROLLED_BACK =
+      ""
+          + NEW_LINE_CHAR
+          + FOLD
+          + "An interrupted save has been rolled back to the previous content for: ";
+  static final String MESSAGE_INTERRUPTED_SAVE_ROLLED_FORWARD =
+      "" + NEW_LINE_CHAR + FOLD + "An interrupted save has been completed for: ";
+  static final String MESSAGE_INTERRUPTED_SAVE_NOT_RECOVERED =
+      ""
+          + NEW_LINE_CHAR
+          + FOLD
+          + "An interrupted save could not be recovered automatically, please fix it manually for: ";
   static final String MESSAGE_SCREEN_HAS_BEEN_CLEARED1 =
       NEW_LINE_CHAR + FOLD + "Your screen has been cleared as ";
   static final String MESSAGE_SCREEN_HAS_BEEN_CLEARED2 = " empty lines have been printed out.";

@@ -171,6 +171,11 @@ public final class MyPwStockMain {
         adminFiles = null;
       }
 
+      // Complete or discard any save that a previous run left half-applied (crashed between
+      // deleting the old file parts and renaming the new ".nw" parts in), before anything is read.
+      recoverInterruptedSaves(passwordDirFolder, APP_PD_POSTFIX);
+      recoverInterruptedSaves(adminDirFolder, APP_AN_POSTFIX);
+
       clearCharArrays();
       clearByteArrays();
       letsWork(args);
