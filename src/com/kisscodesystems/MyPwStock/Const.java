@@ -2,6 +2,8 @@ package com.kisscodesystems.MyPwStock;
 
 import java.io.Console;
 import java.io.File;
+import java.net.URL;
+import java.security.CodeSource;
 import java.text.SimpleDateFormat;
 
 /**
@@ -40,7 +42,7 @@ final class Const {
   static final String PASSWORD_TYPE_ADMIN = "admin";
 
   static final String APP_NAME = "MyPwStock";
-  static final String APP_VERSION = "2.1";
+  static final String APP_VERSION = "2.2";
   static final int APP_MAX_NUM_OF_FILES = 9;
   static final int APP_MAX_LENGTH_OF_PASSWORDS_AND_KEYS_AND_FILE_NAMES = 99;
   static final int APP_MAX_NUM_OF_KEYS_PER_FILE = 999;
@@ -59,9 +61,16 @@ final class Const {
           + (APP_HEADER_MAX_LETTERS + 1)
           + 1
           + 1;
-  static final String APP_PASSWORD_DIR = "pd";
-  static final String APP_ADMIN_DIR = "an";
-  static final String APP_BACKUP_DIR = "bp";
+  // The data, admin and backup directories are anchored next to the running jar so the application
+  // behaves identically on every platform, in any drive or subfolder, regardless of the process
+  // working directory (e.g. a double-clicked jar on Windows runs with the working directory set to
+  // System32, not the jar's folder). When the classes are run loose from a directory (the test/dev
+  // classpath) the base stays empty, keeping the working-directory-relative behavior the tests rely
+  // on.
+  static final String APP_DATA_BASE_DIR = resolveDataBaseDir();
+  static final String APP_PASSWORD_DIR = APP_DATA_BASE_DIR + "pd";
+  static final String APP_ADMIN_DIR = APP_DATA_BASE_DIR + "an";
+  static final String APP_BACKUP_DIR = APP_DATA_BASE_DIR + "bp";
   static final String APP_PD_POSTFIX = ".pd";
   static final String APP_IV_POSTFIX = ".iv";
   static final String APP_SL_POSTFIX = ".sl";
@@ -122,4 +131,37 @@ final class Const {
   static final SimpleDateFormat BACKUP_DATE_FORMAT = new SimpleDateFormat(APP_BACKUP_NAME_FORMAT);
 
   static final Console CONSOLE = System.console();
+
+  /**
+   * Resolves the base directory under which the password, admin and backup directories live, ending
+   * with the platform file separator (or empty for the working directory). When the application runs
+   * from a jar the base is the jar's own directory, so the data folders sit next to the jar on every
+   * platform no matter what the process working directory is; when it runs from loose class files
+   * (the test/dev classpath) the base is empty, preserving working-directory-relative behavior.
+   *
+   * @return the absolute base directory ending with the file separator, or an empty string to anchor
+   *     at the working directory
+   */
+  private static final String resolveDataBaseDir() {
+    try {
+      CodeSource codeSource = Const.class.getProtectionDomain().getCodeSource();
+      if (codeSource == null) {
+        return "";
+      }
+      URL location = codeSource.getLocation();
+      if (location == null) {
+        return "";
+      }
+      File codeSourceFile = new File(location.toURI());
+      if (codeSourceFile.isFile()) {
+        File baseDir = codeSourceFile.getParentFile();
+        if (baseDir != null) {
+          return baseDir.getAbsolutePath() + File.separator;
+        }
+      }
+    } catch (Exception e) {
+      // Fall through to the working-directory-relative default below.
+    }
+    return "";
+  }
 }

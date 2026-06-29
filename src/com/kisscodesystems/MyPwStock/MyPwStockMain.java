@@ -6,7 +6,7 @@
  **
  ** Published       : 02.01.2017
  **
- ** Current version : 2.1
+ ** Current version : 2.2
  **
  ** Developed by    : Jozsef Kiss
  **                   KissCode Systems Kft
@@ -21,6 +21,8 @@
  **                   2.0 - 06.27.2026
  **                   Refactorings, adding new features.
  **                   2.1 - 06.29.2026
+ **                   Improve failsafe saving of encryption.
+ **                   2.2 - 06.29.2026
  **                   Improve failsafe saving of encryption.
  **
  ** MyPwStock is free software: you can redistribute it and/or modify
@@ -125,21 +127,36 @@ public final class MyPwStockMain {
                 MESSAGE_IS_FOLDER_SAFE, APP_MAX_LENGTH_OF_PASSWORDS_AND_KEYS_AND_FILE_NAMES)))) {
           throw systemexit("Error - Folder is not safe by answer, main");
         }
-        passwordDirFolder.mkdirs();
+        if (!passwordDirFolder.mkdirs()) {
+          throw systemexit(
+              "Error - unable to create the password folder: "
+                  + passwordDirFolder.getAbsolutePath()
+                  + ", main");
+        }
         if (backupDirFolder == null) {
           throw systemexit("Error - backupDirFolder is null, main");
         }
         if (backupDirFolder.exists()) {
           throw systemexit("Error - backupDirFolder already exists, main");
         }
-        backupDirFolder.mkdirs();
+        if (!backupDirFolder.mkdirs()) {
+          throw systemexit(
+              "Error - unable to create the backup folder: "
+                  + backupDirFolder.getAbsolutePath()
+                  + ", main");
+        }
         if (adminDirFolder == null) {
           throw systemexit("Error - adminDirFolder is null, main");
         }
         if (adminDirFolder.exists()) {
           throw systemexit("Error - adminDirFolder already exists, main");
         }
-        adminDirFolder.mkdirs();
+        if (!adminDirFolder.mkdirs()) {
+          throw systemexit(
+              "Error - unable to create the admin folder: "
+                  + adminDirFolder.getAbsolutePath()
+                  + ", main");
+        }
         File[] adminFiles = adminDirFolder.listFiles();
         if (adminFiles == null) {
           throw systemexit("Error - adminFiles is null , main");
