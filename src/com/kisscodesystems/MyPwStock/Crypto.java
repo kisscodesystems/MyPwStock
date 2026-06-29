@@ -15,6 +15,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -838,6 +839,156 @@ final class Crypto {
       file = null;
       slFile = null;
       ivFile = null;
+    }
+    return success;
+  }
+
+  /**
+   * Completes or discards any file save that was interrupted between deleting the old live parts
+   * and renaming the freshly written ".nw" parts into place, leaving every affected base name in
+   * the given directory with a consistent set of three parts (data, IV, salt).
+   *
+   * <p>A save writes the new salt, IV and data to ".nw" files, then deletes the old live parts and
+   * renames the ".nw" parts over them ({@link #removeOldFilesAndRenameNewFiles}). A crash anywhere
+   * in that delete-then-rename window can leave the live set incomplete while the new bytes survive
+   * only in the ".nw" files. Run before any file is read, this makes that window effectively atomic:
+   *
+   * <ul>
+   *   <li>All three live parts present: the rename phase had not begun (its first act is to delete
+   *       a live part), so the live set is the previous, consistent content and the leftover ".nw"
+   *       parts are discarded (roll back).
+   *   <li>A live part missing: the rename phase had begun and the only safe direction is forward,
+   *       since the old data part is the first thing deleted and is not recoverable. Every ".nw"
+   *       part that still exists is renamed over its live counterpart; a ".nw" part already gone was
+   *       renamed before the crash, so its live part already holds the new content (roll forward).
+   * </ul>
+   *
+   * @param dir the directory to scan (the password directory or the admin directory)
+   * @param dataPostfix the data-part postfix used in this directory ({@code .pd} or {@code .an})
+   */
+  static final void recoverInterruptedSaves(File dir, String dataPostfix) {
+    if (dir == null) {
+      throw systemexit("Error - dir is null, recoverInterruptedSaves");
+    }
+    if (dir.exists()) {
+      File[] files = dir.listFiles();
+      if (files == null) {
+        throw systemexit("Error - files is null, recoverInterruptedSaves");
+      }
+      ArrayList<String> baseNames = new ArrayList<String>();
+      for (File file : files) {
+        if (file == null) {
+          throw systemexit("Error - file is null, recoverInterruptedSaves");
+        }
+        if (file.getName() == null) {
+          throw systemexit("Error - file . getName ( ) is null, recoverInterruptedSaves");
+        }
+        if (file.isFile() && file.getName().endsWith(APP_NW_POSTFIX)) {
+          String live =
+              file.getName().substring(0, file.getName().length() - APP_NW_POSTFIX.length());
+          String base = null;
+          if (live.endsWith(dataPostfix)) {
+            base = live.substring(0, live.length() - dataPostfix.length());
+          } else if (live.endsWith(APP_IV_POSTFIX)) {
+            base = live.substring(0, live.length() - APP_IV_POSTFIX.length());
+          } else if (live.endsWith(APP_SL_POSTFIX)) {
+            base = live.substring(0, live.length() - APP_SL_POSTFIX.length());
+          }
+          if (base != null && isValidKeyOrFileName(base, false) && !baseNames.contains(base)) {
+            baseNames.add(base);
+          }
+
+          live = null;
+          base = null;
+        }
+      }
+      for (String base : baseNames) {
+        if (base == null) {
+          throw systemexit("Error - base is null, recoverInterruptedSaves");
+        }
+        recoverInterruptedSave(dir, dataPostfix, base);
+      }
+      baseNames.clear();
+
+      baseNames = null;
+      files = null;
+    }
+  }
+
+  /**
+   * Recovers the single base name's interrupted save in the given directory, rolling it back when
+   * the live set is complete or forward otherwise, and reports the outcome.
+   *
+   * @param dir the directory holding the file parts
+   * @param dataPostfix the data-part postfix used in this directory ({@code .pd} or {@code .an})
+   * @param base the base file name whose parts are recovered
+   */
+  static final void recoverInterruptedSave(File dir, String dataPostfix, String base) {
+    if (!isValidKeyOrFileName(base, false)) {
+      throw systemexit("Error - base is not valid, recoverInterruptedSave");
+    }
+    String prefix = dir.getPath() + SEP + base;
+    File dataLive = new File(prefix + dataPostfix);
+    File ivLive = new File(prefix + APP_IV_POSTFIX);
+    File slLive = new File(prefix + APP_SL_POSTFIX);
+    File dataNew = new File(prefix + dataPostfix + APP_NW_POSTFIX);
+    File ivNew = new File(prefix + APP_IV_POSTFIX + APP_NW_POSTFIX);
+    File slNew = new File(prefix + APP_SL_POSTFIX + APP_NW_POSTFIX);
+    int liveCount =
+        (dataLive.exists() ? 1 : 0) + (ivLive.exists() ? 1 : 0) + (slLive.exists() ? 1 : 0);
+    if (liveCount == 3) {
+      boolean rolledBack = true;
+      if (dataNew.exists() && !dataNew.delete()) {
+        rolledBack = false;
+      }
+      if (ivNew.exists() && !ivNew.delete()) {
+        rolledBack = false;
+      }
+      if (slNew.exists() && !slNew.delete()) {
+        rolledBack = false;
+      }
+      if (rolledBack) {
+        outprintln(MESSAGE_INTERRUPTED_SAVE_ROLLED_BACK + base);
+      } else {
+        outprintln(MESSAGE_INTERRUPTED_SAVE_NOT_RECOVERED + base);
+      }
+    } else {
+      boolean dataOk = rollForwardPart(dataNew, dataLive);
+      boolean ivOk = rollForwardPart(ivNew, ivLive);
+      boolean slOk = rollForwardPart(slNew, slLive);
+      if (dataOk && ivOk && slOk && dataLive.exists() && ivLive.exists() && slLive.exists()) {
+        outprintln(MESSAGE_INTERRUPTED_SAVE_ROLLED_FORWARD + base);
+      } else {
+        outprintln(MESSAGE_INTERRUPTED_SAVE_NOT_RECOVERED + base);
+      }
+    }
+
+    prefix = null;
+    dataLive = null;
+    ivLive = null;
+    slLive = null;
+    dataNew = null;
+    ivNew = null;
+    slNew = null;
+  }
+
+  /**
+   * Renames a single new ".nw" part over its live counterpart, deleting any existing live part
+   * first. A missing new part is treated as already renamed before the crash and left untouched.
+   *
+   * @param newFile the ".nw" part written by the interrupted save
+   * @param liveFile the live part to be replaced
+   * @return true if the live part holds the new content afterwards, false if a filesystem operation
+   *     failed
+   */
+  static final boolean rollForwardPart(File newFile, File liveFile) {
+    boolean success = true;
+    if (newFile.exists()) {
+      if (liveFile.exists() && !liveFile.delete()) {
+        success = false;
+      } else if (!newFile.renameTo(liveFile)) {
+        success = false;
+      }
     }
     return success;
   }

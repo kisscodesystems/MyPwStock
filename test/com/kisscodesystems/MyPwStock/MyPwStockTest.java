@@ -331,6 +331,136 @@ public final class MyPwStockTest {
     }
   }
 
+  // Builds a password file with a single key/value pair and saves it to disk, leaving a valid,
+  // mutually consistent .pd/.iv/.sl triple under "pd/".
+  private static void buildAndSaveFile1(String fileName, String key, String val, char[] pw) {
+    State.toCachePasswords = false;
+    State.passwordForFile1 = pw.clone();
+    char[] content = new char[Const.APP_FILE_CONTENT_MAX_LENGTH];
+    int p = 0;
+    for (char c : Crypto.generateRandomHeader()) {
+      content[p++] = c;
+    }
+    content[p++] = Const.ALLOW_NOTES_NO;
+    content[p++] = '\n';
+    for (char c : key.toCharArray()) {
+      content[p++] = c;
+    }
+    content[p++] = '\n';
+    for (char c : val.toCharArray()) {
+      content[p++] = c;
+    }
+    content[p++] = '\n';
+    for (int i = p; i < content.length; i++) {
+      content[i] = Const.NUL_CHAR;
+    }
+    State.fileContent1Orig = content;
+    assertTrue("saveFile " + fileName, Crypto.saveFile(fileName, Const.PASSWORD_TYPE_FILE1));
+  }
+
+  // Reloads a password file purely from disk and returns the value stored under the given key.
+  private static String readValueFile1(String fileName, String key, char[] pw) {
+    ArrayUtils.clearCharArray(State.fileContent1Orig);
+    State.fileContent1Orig = new char[0];
+    State.passwordForFile1 = pw.clone();
+    assertTrue(
+        "getFileContent " + fileName, Crypto.getFileContent(fileName, Const.PASSWORD_TYPE_FILE1));
+    return new String(PasswordCommands.getKeyPasswordFile1(key));
+  }
+
+  private static void rename(String from, String to) {
+    assertTrue("rename " + from, new File(from).renameTo(new File(to)));
+  }
+
+  @Test
+  public void recoverRollsForwardWhenRenameInterrupted() throws Exception {
+    new File("pd").mkdirs();
+    new File("an").mkdirs();
+    try {
+      char[] pw = "ABCDabcd123..".toCharArray();
+      buildAndSaveFile1("rf", "k", "NewValue.1!", pw);
+      // Simulate a crash after the new parts were written and the old parts deleted, but before any
+      // ".nw" part was renamed back: the whole live set is gone, the new bytes survive only in .nw.
+      rename("pd/rf.pd", "pd/rf.pd.nw");
+      rename("pd/rf.iv", "pd/rf.iv.nw");
+      rename("pd/rf.sl", "pd/rf.sl.nw");
+      Crypto.recoverInterruptedSaves(new File("pd"), Const.APP_PD_POSTFIX);
+      assertTrue("live data restored", new File("pd/rf.pd").isFile());
+      assertTrue("live iv restored", new File("pd/rf.iv").isFile());
+      assertTrue("live sl restored", new File("pd/rf.sl").isFile());
+      assertFalse("nw consumed", new File("pd/rf.pd.nw").exists());
+      assertEquals("rolled-forward content decrypts", "NewValue.1!", readValueFile1("rf", "k", pw));
+    } finally {
+      deleteRecursively(new File("pd"));
+      deleteRecursively(new File("an"));
+    }
+  }
+
+  @Test
+  public void recoverRollsBackWhenLiveSetComplete() throws Exception {
+    new File("pd").mkdirs();
+    new File("an").mkdirs();
+    try {
+      char[] pw = "ABCDabcd123..".toCharArray();
+      buildAndSaveFile1("rb", "k", "KeepThis.1!", pw);
+      // Simulate a crash after the new parts were written but before the rename phase began (its
+      // first act deletes a live part), so the live set is still complete and authoritative.
+      java.nio.file.Files.write(new File("pd/rb.pd.nw").toPath(), new byte[] {1, 2, 3});
+      java.nio.file.Files.write(new File("pd/rb.iv.nw").toPath(), new byte[] {4, 5, 6});
+      java.nio.file.Files.write(new File("pd/rb.sl.nw").toPath(), new byte[] {7, 8, 9});
+      Crypto.recoverInterruptedSaves(new File("pd"), Const.APP_PD_POSTFIX);
+      assertFalse("data nw discarded", new File("pd/rb.pd.nw").exists());
+      assertFalse("iv nw discarded", new File("pd/rb.iv.nw").exists());
+      assertFalse("sl nw discarded", new File("pd/rb.sl.nw").exists());
+      assertEquals("previous content kept", "KeepThis.1!", readValueFile1("rb", "k", pw));
+    } finally {
+      deleteRecursively(new File("pd"));
+      deleteRecursively(new File("an"));
+    }
+  }
+
+  @Test
+  public void recoverMergesPartiallyRenamedParts() throws Exception {
+    new File("pd").mkdirs();
+    new File("an").mkdirs();
+    try {
+      char[] pw = "ABCDabcd123..".toCharArray();
+      buildAndSaveFile1("mg", "k", "Merged.9!", pw);
+      // Simulate a crash midway through the rename phase: the data part was already renamed back
+      // (so its .nw is gone and the live part is the new one), while iv and sl are still pending in
+      // .nw with their live counterparts already deleted. Recovery must take .nw where it exists and
+      // the live part where the .nw is already gone.
+      rename("pd/mg.iv", "pd/mg.iv.nw");
+      rename("pd/mg.sl", "pd/mg.sl.nw");
+      Crypto.recoverInterruptedSaves(new File("pd"), Const.APP_PD_POSTFIX);
+      assertTrue("iv completed", new File("pd/mg.iv").isFile());
+      assertTrue("sl completed", new File("pd/mg.sl").isFile());
+      assertFalse("iv nw consumed", new File("pd/mg.iv.nw").exists());
+      assertEquals("merged content decrypts", "Merged.9!", readValueFile1("mg", "k", pw));
+    } finally {
+      deleteRecursively(new File("pd"));
+      deleteRecursively(new File("an"));
+    }
+  }
+
+  @Test
+  public void recoverLeavesUnrecoverableStateUntouched() throws Exception {
+    new File("pd").mkdirs();
+    new File("an").mkdirs();
+    try {
+      // A lone data ".nw" with no live parts and no iv/sl ".nw": the save cannot be completed.
+      // Recovery must not throw and must not present the file as a usable (complete) container.
+      java.nio.file.Files.write(new File("pd/lost.pd.nw").toPath(), new byte[] {1, 2, 3});
+      Crypto.recoverInterruptedSaves(new File("pd"), Const.APP_PD_POSTFIX);
+      assertFalse(
+          "incomplete file not treated as existing",
+          Validate.isExistingPasswordFile("lost", false));
+    } finally {
+      deleteRecursively(new File("pd"));
+      deleteRecursively(new File("an"));
+    }
+  }
+
   private static void createEmptyFile(File dir, String name) throws Exception {
     if (!new File(dir, name).createNewFile()) {
       throw new RuntimeException("could not create " + name);
