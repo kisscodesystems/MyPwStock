@@ -2368,6 +2368,11 @@ final class Messages {
           + "Your note was too long and has been truncated to "
           + APP_MAX_LENGTH_OF_NOTE
           + " characters.";
+  static final String MESSAGE_INPUT_TOO_LONG =
+      ""
+          + NEW_LINE_CHAR
+          + FOLD
+          + "Your input was too long and has not been accepted. Please try again.";
   static final String MESSAGE_ENTER_PASSWORD_VERIFY = "" + FOLD + "Please verify it: ";
   static final String MESSAGE_PASSWORD_VERIFICATION_ERROR =
       "" + NEW_LINE_CHAR + FOLD + "Sorry but the password and its verification are not the same.";
