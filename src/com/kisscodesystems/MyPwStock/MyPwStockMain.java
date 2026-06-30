@@ -6,7 +6,7 @@
  **
  ** Published       : 02.01.2017
  **
- ** Current version : 2.2
+ ** Current version : 2.3
  **
  ** Developed by    : Jozsef Kiss
  **                   KissCode Systems Kft
@@ -23,7 +23,9 @@
  **                   2.1 - 06.29.2026
  **                   Improve failsafe saving of encryption.
  **                   2.2 - 06.29.2026
- **                   Improve failsafe saving of encryption.
+ **                   Improve failsafe password entering.
+ **                   2.3 - 06.30.2026
+ **                   Increase length of logging, add small features.
  **
  ** MyPwStock is free software: you can redistribute it and/or modify
  ** it under the terms of the GNU General Public License as published by

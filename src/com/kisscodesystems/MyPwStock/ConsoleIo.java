@@ -19,7 +19,7 @@ final class ConsoleIo {
    *
    * @param s the prompt to display
    * @param maxLength the maximum allowed length of the read line
-   * @return the line read from the console
+   * @return the line read from the console, or an empty string if the input exceeded maxLength
    */
   static final String readline(String s, int maxLength) {
     String read = "";
@@ -38,7 +38,11 @@ final class ConsoleIo {
       throw systemexit("Error - Waited too long, readline");
     }
     if (read.length() > maxLength) {
-      throw systemexit("Error - Too long input has been read, readline");
+      // Over-long input is reported and rejected (returned as empty) rather than aborting the JVM,
+      // so the caller's prompt/validation loop can ask again. This matters in interactive mode,
+      // where exiting would tear down the whole session.
+      outprintln(MESSAGE_INPUT_TOO_LONG);
+      read = "";
     }
 
     wait = null;
@@ -105,7 +109,10 @@ final class ConsoleIo {
     if (isASCII(read)) {
       read = read.trim();
       if (read.length() > APP_MAX_LENGTH_OF_PASSWORDS_AND_KEYS_AND_FILE_NAMES * 3 + 25) {
-        throw systemexit("Error - Too long input has been read, readiline");
+        // Reject the over-long command line with a message instead of aborting the JVM, so the
+        // interactive read-eval loop keeps running and simply prompts again.
+        outprintln(MESSAGE_INPUT_TOO_LONG);
+        read = "";
       }
     } else {
       read = "";
@@ -115,12 +122,13 @@ final class ConsoleIo {
   }
 
   /**
-   * Reads a password from the console without echo, enforcing the input timeout and maximum length;
-   * returns an empty array if the input is not non-space ASCII and aborts the program on read
-   * failures or excessive length.
+   * Reads a password from the console without echo, enforcing the input timeout; returns an empty
+   * array if the input is not non-space ASCII or exceeds the maximum length (reporting the latter
+   * with a message so the caller can prompt again), and aborts the program only on read failures.
    *
    * @param s the prompt to display
-   * @return the password characters read, or an empty array if the input was not non-space ASCII
+   * @return the password characters read, or an empty array if the input was not non-space ASCII or
+   *     was too long
    */
   static final char[] readpassword(String s) {
     char[] read = new char[0];
@@ -139,7 +147,10 @@ final class ConsoleIo {
       throw systemexit("Error - Waited too long, readpassword");
     }
     if (read.length > APP_MAX_LENGTH_OF_PASSWORDS_AND_KEYS_AND_FILE_NAMES) {
-      throw systemexit("Error - Too long password has been read, readpassword");
+      // Over-long input is reported and rejected (returned as empty) rather than aborting the JVM,
+      // so the caller's prompt/validation loop can ask again instead of killing the session.
+      outprintln(MESSAGE_INPUT_TOO_LONG);
+      read = new char[0];
     } else {
       if (!isASCIIandNONSPACE(read)) {
         read = new char[0];

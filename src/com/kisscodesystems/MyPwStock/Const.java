@@ -42,7 +42,7 @@ final class Const {
   static final String PASSWORD_TYPE_ADMIN = "admin";
 
   static final String APP_NAME = "MyPwStock";
-  static final String APP_VERSION = "2.2";
+  static final String APP_VERSION = "2.3";
   static final int APP_MAX_NUM_OF_FILES = 9;
   static final int APP_MAX_LENGTH_OF_PASSWORDS_AND_KEYS_AND_FILE_NAMES = 99;
   static final int APP_MAX_NUM_OF_KEYS_PER_FILE = 999;
@@ -50,17 +50,14 @@ final class Const {
   // Maximum length of a rich note (key value in a 'r'-mode file). Keys and good passwords stay
   // bounded by APP_MAX_LENGTH_OF_PASSWORDS_AND_KEYS_AND_FILE_NAMES.
   static final int APP_MAX_LENGTH_OF_NOTE = 999;
-  static final int APP_MAX_LENGTH_TO_LOG = 4 * APP_MAX_LENGTH_OF_PASSWORDS_AND_KEYS_AND_FILE_NAMES;
+  static final int APP_MAX_LENGTH_TO_LOG = 100
+      + APP_MAX_LENGTH_OF_NOTE
+      + 2 * APP_MAX_LENGTH_OF_PASSWORDS_AND_KEYS_AND_FILE_NAMES;
   // Sized for the worst case of a full file: every key line is up to
   // (key length + newline) and every value line up to (note length + newline).
   static final int APP_FILE_CONTENT_MAX_LENGTH =
-      APP_MAX_NUM_OF_KEYS_PER_FILE
-              * ((APP_MAX_LENGTH_OF_PASSWORDS_AND_KEYS_AND_FILE_NAMES + 1)
-                  + (APP_MAX_LENGTH_OF_NOTE + 1))
-          + (APP_HEADER_MAX_LETTERS + 1)
-          + (APP_HEADER_MAX_LETTERS + 1)
-          + 1
-          + 1;
+      APP_MAX_NUM_OF_KEYS_PER_FILE * APP_MAX_LENGTH_TO_LOG
+      + 2 * APP_HEADER_MAX_LETTERS;
   // The data, admin and backup directories are anchored next to the running jar so the application
   // behaves identically on every platform, in any drive or subfolder, regardless of the process
   // working directory (e.g. a double-clicked jar on Windows runs with the working directory set to
