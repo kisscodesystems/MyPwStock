@@ -292,36 +292,30 @@ final class PasswordCommands {
   }
 
   /**
-   * Copies the password stored under the given key onto the system clipboard. Unlike the show
-   * command it does not require a safe-screen confirmation. It then displays a countdown (giving
-   * the user time to paste) and clears the password from the clipboard when the countdown ends.
+   * Copies the value stored under the given key onto the system clipboard. Unlike the show command
+   * it does not require a safe-screen confirmation. It then displays a countdown (giving the user
+   * time to paste) and clears the value from the clipboard when the countdown ends. This works
+   * identically for whole passwords and for notes: in both cases the value is routed through the
+   * clipboard rather than displayed on screen.
    *
-   * <p>Notes are not secrecy-sensitive in the same way as whole passwords, so for note files this
-   * falls back to displaying the stored value on screen (as {@code password show} does) instead of
-   * routing it through the clipboard.
-   *
-   * @param key the key whose password should be copied
+   * @param key the key whose value should be copied
    */
   static final void passwordCopyFile1(String key) {
     if (isValidKeyOrFileName(key, true)) {
       if (getKeyPos(PASSWORD_TYPE_FILE1, key) != -1) {
-        if (allowNotesFile1 != ALLOW_NOTES_NO) {
-          passwordShowFile1(key);
-        } else {
-          char[] thePassword = getKeyPasswordFile1(key);
-          if (thePassword == null) {
-            throw systemexit("Error - thePassword is null, passwordCopyFile1");
-          }
-          if (copyToClipboard(thePassword)) {
-            outprintln(MESSAGE_PASSWORD_HAS_BEEN_COPIED);
-            outprintln(MESSAGE_PASTE_IT_NOW);
-            displayCountdownStatus(APP_CLIPBOARD_CLEAR_SECONDS);
-            clearClipboard();
-            outprintln(MESSAGE_CLIPBOARD_HAS_BEEN_CLEARED);
-          }
-          clearCharArray(thePassword);
-          thePassword = null;
+        char[] thePassword = getKeyPasswordFile1(key);
+        if (thePassword == null) {
+          throw systemexit("Error - thePassword is null, passwordCopyFile1");
         }
+        if (copyToClipboard(thePassword)) {
+          outprintln(MESSAGE_PASSWORD_HAS_BEEN_COPIED);
+          outprintln(MESSAGE_PASTE_IT_NOW);
+          displayCountdownStatus(APP_CLIPBOARD_CLEAR_SECONDS);
+          clearClipboard();
+          outprintln(MESSAGE_CLIPBOARD_HAS_BEEN_CLEARED);
+        }
+        clearCharArray(thePassword);
+        thePassword = null;
       } else {
         outprintln(MESSAGE_KEY_IS_NOT_FOUND);
       }
