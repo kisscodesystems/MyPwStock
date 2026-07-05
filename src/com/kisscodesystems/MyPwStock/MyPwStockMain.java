@@ -6,7 +6,7 @@
  **
  ** Published       : 02.01.2017
  **
- ** Current version : 2.4
+ ** Current version : 2.5
  **
  ** Developed by    : Jozsef Kiss
  **                   KissCode Systems Kft
@@ -28,10 +28,12 @@
  **                   Increase length of logging, add small features.
  **                   2.4 - 06.30.2026
  **                   Improve copy display.
+ **                   2.5 - 07.04.2026
+ **                   Smaller modifications.
  **
  ** MyPwStock is free software: you can redistribute it and/or modify
  ** it under the terms of the GNU General Public License as published by
- ** Free Software Foundation, version 3.
+ ** the Free Software Foundation, version 3.
  **
  ** MyPwStock is distributed in the hope that it will be useful,
  ** but WITHOUT ANY WARRANTY; without even the implied warranty of
