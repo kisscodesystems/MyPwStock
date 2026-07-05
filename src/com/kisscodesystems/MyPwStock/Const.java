@@ -42,7 +42,7 @@ final class Const {
   static final String PASSWORD_TYPE_ADMIN = "admin";
 
   static final String APP_NAME = "MyPwStock";
-  static final String APP_VERSION = "2.4";
+  static final String APP_VERSION = "2.5";
   static final int APP_MAX_NUM_OF_FILES = 9;
   static final int APP_MAX_LENGTH_OF_PASSWORDS_AND_KEYS_AND_FILE_NAMES = 99;
   static final int APP_MAX_NUM_OF_KEYS_PER_FILE = 999;
