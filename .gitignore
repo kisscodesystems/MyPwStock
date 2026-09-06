@@ -1,0 +1,6 @@
+# What the build compiles and packages. The jar of the application itself is in
+# the root of the repository, put there by the build.
+bin
+
+# What the test run compiles and writes.
+build

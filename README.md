@@ -67,8 +67,15 @@ MyPwStock is a single-package, dependency-free Java program. Building it is just
 repository root as the working directory):
 
 ```bash
-# Run this:
-./MyPwStock_build.sh
+./MyPwStock_build_linux.sh
+```
+
+```bash
+./MyPwStock_build_macos.sh
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\MyPwStock_build_windows.ps1
 ```
 
 This produces `MyPwStock.jar` in the repository root. A JDK 8 or newer is
@@ -98,12 +105,20 @@ java -cp build/main_out com.kisscodesystems.MyPwStock.MyPwStockMain help
 
 ### Tests
 
-The regression suite is driven by `test/run_tests.sh`. It compiles the current
+The regression suite is driven by `test/MyPwStock_run_tests_<platform>`. It compiles the current
 sources, then runs the JUnit tests that check the validators, password
 generation and the encrypted-file format:
 
 ```bash
-bash test/run_tests.sh
+bash test/MyPwStock_run_tests_linux.sh
+```
+
+```bash
+bash test/MyPwStock_run_tests_macos.sh
+```
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\test\MyPwStock_run_tests_windows.ps1
 ```
 
 The script needs `junit-4.12.jar` and `hamcrest-core-1.3.jar`; both are bundled in
