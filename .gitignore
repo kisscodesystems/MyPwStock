@@ -1,6 +1,9 @@
-# What the build compiles and packages. The jar of the application itself is in
-# the root of the repository, put there by the build.
+# What the build compiles and packages. The jar of the application is a build
+# artifact and no part of this repository: the builder script of your platform
+# writes it here, and the jar of a released version is published as a binary of
+# that release.
 bin
+/MyPwStock.jar
 
 # What the test run compiles and writes.
 build
