@@ -4,33 +4,6 @@
  * Description:    : This tiny application stores passwords
  *                   or any key - value sensitive data in encrypted format.
  *
- * Published       : 02.01.2017
- *
- * Current version : 2.5
- *
- * Developed by    : Jozsef Kiss
- *                   KissCode Systems Kft
- *                   <http://www.prdare.com>
- *
- * Changelog       : 1.0 - 02.01.2017
- *                   Initial release.
- *                   1.1 - 04.05.2017
- *                   Smaller improvements.
- *                   1.2 - 08.19.2017
- *                   Smaller improvements.
- *                   2.0 - 06.27.2026
- *                   Refactorings, adding new features.
- *                   2.1 - 06.29.2026
- *                   Improve failsafe saving of encryption.
- *                   2.2 - 06.29.2026
- *                   Improve failsafe password entering.
- *                   2.3 - 06.30.2026
- *                   Increase length of logging, add small features.
- *                   2.4 - 06.30.2026
- *                   Improve copy display.
- *                   2.5 - 07.04.2026
- *                   Smaller modifications.
- *
  * MyPwStock is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3.
